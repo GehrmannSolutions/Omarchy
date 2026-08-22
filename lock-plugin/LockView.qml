@@ -123,13 +123,27 @@ Item {
       id: brandLogo
       source: "file:///home/mg/.config/omarchy/branding/gehrmann-logo.png"
       fillMode: Image.PreserveAspectFit
-      height: 130
+      height: 220
       width: height * (implicitWidth / Math.max(1, implicitHeight))
       anchors.bottom: inputField.top
-      anchors.bottomMargin: 32
+      anchors.bottomMargin: 44
       anchors.horizontalCenter: parent.horizontalCenter
       asynchronous: true
       cache: true
+      visible: false
+    }
+
+    MultiEffect {
+      anchors.fill: brandLogo
+      source: brandLogo
+      autoPaddingEnabled: true
+      shadowEnabled: true
+      shadowColor: "#2e3eff"
+      shadowBlur: 0.8
+      shadowOpacity: 0.55
+      shadowScale: 1.1
+      shadowVerticalOffset: 0
+      shadowHorizontalOffset: 0
     }
 
     BorderSurface {
