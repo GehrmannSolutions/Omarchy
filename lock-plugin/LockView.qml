@@ -123,8 +123,8 @@ Item {
       id: brandLogo
       source: "file:///home/mg/.config/omarchy/branding/gehrmann-logo.png"
       fillMode: Image.PreserveAspectFit
-      height: 220
-      width: height * (implicitWidth / Math.max(1, implicitHeight))
+      width: root.fieldWidth
+      height: width * (implicitHeight / Math.max(1, implicitWidth))
       anchors.bottom: inputField.top
       anchors.bottomMargin: 44
       anchors.horizontalCenter: parent.horizontalCenter
