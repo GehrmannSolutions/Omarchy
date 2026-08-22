@@ -27,12 +27,25 @@ Generated from the site's own `pattern.svg` (a radial halftone dot-burst,
 - `2-sunburst-white.jpg` — white background, navy burst (mirrors the
   site's alternating light sections)
 - `3-navy-plain.jpg` — plain navy gradient, no pattern
-- `4-gs-logo.png` — the GS (Gehrmann Solutions) cloud/circuit logo,
-  recolored as a navy/accent-blue duotone with a soft glow, centered on
-  a navy vignette (currently active)
+- `4-gs-logo.png` — the GS (Gehrmann Solutions) cloud/circuit logo, bold
+  navy fill with a white outline, centered on a navy vignette
+- `5-gs-logo-inverted.png` — background 4's shapes inverted (white fill,
+  bold navy `#1c2d63` outline), for bright/light contexts
+- `6-gs-logo-brightblue.png` — background 4's shapes with the bright
+  accent blue `#2e3eff` fill instead of bold navy
+- `7-gs-logo-brightblue.png` — background 5's shapes with the bright
+  accent blue fill instead of white
+- `8-gs-logo-glow.png` — background 4's look plus a soft blue glow,
+  dead-centered (currently active)
+
+All are centroid-corrected, not bounding-box-centered — the source art has
+a slight asymmetric protrusion that makes naive bbox centering look off.
 
 Cycle with `omarchy theme bg next`, or jump straight to one with
-`omarchy theme bg set <path>`.
+`omarchy theme bg set <path>`. After adding/changing background files,
+`omarchy theme refresh && omarchy theme bg cache` — Omarchy snapshots the
+theme folder at apply time, so the background switcher won't see new files
+until that snapshot refreshes.
 
 ## Extras beyond the theme system
 
@@ -62,6 +75,17 @@ manual install steps:
   ```
   The original Omarchy default is backed up at
   `~/.config/omarchy/branding/screensaver.txt.orig-omarchy-backup`.
+
+## Related, but not in this repo
+
+A second, custom generative screensaver (circuit traces growing from the
+logo, HTML5 canvas + Chromium kiosk, triggered via Omarchy's idle IPC since
+`swayidle` doesn't get a working signal on this Hyprland build) lives
+separately at `~/Nextcloud/GS-Logo/screensaver/` — not part of this git
+repo since it's not an Omarchy theme-format asset. See its own README for
+what it is and how to install it on another machine. `~/Nextcloud/GS-Logo/`
+also has the traceable vector source (`gs-logo.svg`) for the logo used
+throughout this theme.
 
 ## Export / Import
 

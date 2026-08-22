@@ -8,6 +8,7 @@ Item {
 
   property string backgroundPath: ""
   property int backgroundVersion: 0
+  property string brandLogoPath: ""
   property bool fingerprintConfigured: false
   property bool authenticatingPassword: false
   property string failureMessage: ""
@@ -121,7 +122,7 @@ Item {
 
     Image {
       id: brandLogo
-      source: "file:///home/mg/.config/omarchy/branding/gehrmann-logo.png"
+      source: root.brandLogoPath ? "file://" + root.brandLogoPath : ""
       fillMode: Image.PreserveAspectFit
       width: root.fieldWidth
       height: width * (implicitHeight / Math.max(1, implicitWidth))
