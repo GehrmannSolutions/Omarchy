@@ -30,13 +30,6 @@ Generated from the site's own `pattern.svg` (a radial halftone dot-burst,
 - `4-gs-logo.png` — the GS (Gehrmann Solutions) cloud/circuit logo,
   recolored as a navy/accent-blue duotone with a soft glow, centered on
   a navy vignette (currently active)
-- `5-gs-logo-light.png` — light counterpart to `4-gs-logo.png` for bright
-  environments: a bold navy (`--dark-blue`) outline with a hollow white
-  interior, on a soft near-white vignette (`foreground`) — the inverse
-  of `4-gs-logo.png`'s flat-fill styling. Same corrected logo geometry
-  and scale as `4-gs-logo.png` (centroid-centered, inward-inset
-  outline), just recolored — mirrors how `2-sunburst-white.jpg` is the
-  light counterpart of `1-sunburst-navy.jpg`
 
 Cycle with `omarchy theme bg next`, or jump straight to one with
 `omarchy theme bg set <path>`.
