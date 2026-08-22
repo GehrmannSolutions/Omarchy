@@ -128,6 +128,10 @@ Item {
       anchors.bottom: inputField.top
       anchors.bottomMargin: 44
       anchors.horizontalCenter: parent.horizontalCenter
+      // The artwork's visual mass sits ~5.2% left of its own trimmed bounding
+      // box's center (an asymmetric protrusion in the source art), so centering
+      // the box alone reads as off-center. Nudge right to compensate.
+      anchors.horizontalCenterOffset: width * 0.0517
       asynchronous: true
       cache: true
       visible: false
