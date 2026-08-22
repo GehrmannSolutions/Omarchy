@@ -34,6 +34,35 @@ Generated from the site's own `pattern.svg` (a radial halftone dot-burst,
 Cycle with `omarchy theme bg next`, or jump straight to one with
 `omarchy theme bg set <path>`.
 
+## Extras beyond the theme system
+
+These aren't part of Omarchy's theme format, so `omarchy theme install` won't
+apply them automatically — they're tracked here for backup/reference, with
+manual install steps:
+
+- `backgrounds/5-gs-logo-inverted.png` — inverted logo (white fill, bold navy
+  `#1c2d63` outline) for bright backgrounds, same scale/position as background 4.
+- `branding/gehrmann-logo.png` — transparent-background logo (navy fill,
+  white outline), used on the lock screen.
+- `lock-plugin/` — a clone of the `omarchy.lock` shell plugin with the logo
+  added above the password field. Install with:
+  ```bash
+  cp -r lock-plugin ~/.config/omarchy/plugins/mg.lock
+  cp branding/gehrmann-logo.png ~/.config/omarchy/branding/gehrmann-logo.png
+  # then add to ~/.config/omarchy/shell.json:
+  #   "plugins": [{"id": "mg.lock"}], "disabledPlugins": ["omarchy.lock"]
+  omarchy restart shell
+  ```
+- `branding/screensaver.txt` — circuit-art ASCII rendition of the logo
+  (generated with `omarchy transcode ascii`), replacing Omarchy's default
+  screensaver content. ttfx still supplies the animated reveal effects
+  (random each cycle) — only the artwork changed. Install with:
+  ```bash
+  cp branding/screensaver.txt ~/.config/omarchy/branding/screensaver.txt
+  ```
+  The original Omarchy default is backed up at
+  `~/.config/omarchy/branding/screensaver.txt.orig-omarchy-backup`.
+
 ## Export / Import
 
 This theme directory is a self-contained git repo, which is Omarchy's
