@@ -27,8 +27,12 @@ Generated from the site's own `pattern.svg` (a radial halftone dot-burst,
 - `2-sunburst-white.jpg` — white background, navy burst (mirrors the
   site's alternating light sections)
 - `3-navy-plain.jpg` — plain navy gradient, no pattern
+- `4-gs-logo.png` — the GS (Gehrmann Solutions) cloud/circuit logo,
+  recolored as a navy/accent-blue duotone with a soft glow, centered on
+  a navy vignette (currently active)
 
-Cycle with `omarchy theme bg next`.
+Cycle with `omarchy theme bg next`, or jump straight to one with
+`omarchy theme bg set <path>`.
 
 ## Export / Import
 
@@ -55,11 +59,15 @@ omarchy theme remove gehrmann
 
 ## Updating the Nextcloud copy
 
-The Nextcloud folder is a git clone of this repo. After changing anything
-here, push it to keep the backup in sync:
+The Nextcloud folder is a git clone of this repo, with its working tree
+checked out (so Nextcloud can sync the files) — that means it can only be
+*pulled into*, not pushed to directly. After changing anything in the live
+theme, sync the Nextcloud copy by pulling from it:
 
 ```bash
 cd ~/.config/omarchy/themes/gehrmann
 git add -A && git commit -m "describe the change"
-git push backup master
+
+cd ~/Nextcloud/omarchy-gehrmann-theme
+git pull   # remote "live" already points at ~/.config/omarchy/themes/gehrmann
 ```
