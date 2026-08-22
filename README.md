@@ -1,4 +1,4 @@
-# Gehrmann — Omarchy theme
+# Gehrmann Solutions — Omarchy theme
 
 A dark Omarchy theme built from the real brand assets of
 [gehrmann.solutions](https://gehrmann.solutions): deep navy backgrounds,
@@ -93,21 +93,21 @@ This theme directory is a self-contained git repo, which is Omarchy's
 native theme distribution format.
 
 **Export (from this machine):** already tracked here at
-`~/.config/omarchy/themes/gehrmann`. A synced copy lives in
-`~/Nextcloud/omarchy-gehrmann-theme`.
+`~/.config/omarchy/themes/gehrmann-solutions`. A synced copy lives in
+`~/Nextcloud/omarchy-gehrmann-solutions-theme`.
 
 **Import (on any Omarchy machine):**
 
 ```bash
-omarchy theme install /path/to/omarchy-gehrmann-theme   # local path (e.g. synced Nextcloud folder)
+omarchy theme install /path/to/omarchy-gehrmann-solutions-theme   # local path (e.g. synced Nextcloud folder)
 # or, if pushed to a remote:
-omarchy theme install https://github.com/<you>/omarchy-gehrmann-theme.git
+omarchy theme install https://github.com/<you>/omarchy-gehrmann-solutions-theme.git
 ```
 
 **Remove:**
 
 ```bash
-omarchy theme remove gehrmann
+omarchy theme remove gehrmann-solutions
 ```
 
 ## Updating the Nextcloud copy
@@ -118,9 +118,9 @@ checked out (so Nextcloud can sync the files) — that means it can only be
 theme, sync the Nextcloud copy by pulling from it:
 
 ```bash
-cd ~/.config/omarchy/themes/gehrmann
+cd ~/.config/omarchy/themes/gehrmann-solutions
 git add -A && git commit -m "describe the change"
 
-cd ~/Nextcloud/omarchy-gehrmann-theme
-git pull   # remote "live" already points at ~/.config/omarchy/themes/gehrmann
+cd ~/Nextcloud/omarchy-gehrmann-solutions-theme
+git pull   # remote "live" already points at ~/.config/omarchy/themes/gehrmann-solutions
 ```
