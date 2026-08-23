@@ -87,21 +87,26 @@ what it is and how to install it on another machine. `~/Nextcloud/GS-Logo/`
 also has the traceable vector source (`gs-logo.svg`) for the logo used
 throughout this theme.
 
-## Export / Import
+## Repo layout
 
 This theme directory is a self-contained git repo, which is Omarchy's
-native theme distribution format.
+native theme distribution format. It lives in three places, each with a
+different role:
 
-**Export (from this machine):** already tracked here at
-`~/.config/omarchy/themes/gehrmann-solutions`. A synced copy lives in
-`~/Nextcloud/omarchy-gehrmann-solutions-theme`.
+- `~/Work/tries/gehrmann-solutions-theme` — **canonical** copy. Edit here.
+- `~/.config/omarchy/themes/gehrmann-solutions` — the **live** copy Omarchy
+  actually reads/applies. Remote `origin` points at the canonical copy.
+- `https://github.com/GehrmannSolutions/Omarchy` — public monorepo, this
+  theme lives under `Themes/gehrmann-solutions/` on branch `main`, merged
+  in via `git subtree` (full history preserved). A local working clone of
+  the monorepo is kept at `~/Work/tries/omarchy`.
 
 **Import (on any Omarchy machine):**
 
 ```bash
-omarchy theme install /path/to/omarchy-gehrmann-solutions-theme   # local path (e.g. synced Nextcloud folder)
-# or, if pushed to a remote:
-omarchy theme install https://github.com/<you>/omarchy-gehrmann-solutions-theme.git
+omarchy theme install /path/to/gehrmann-solutions-theme   # local path
+# or, from GitHub (sparse — pulls just this theme's history+prefix):
+omarchy theme install https://github.com/GehrmannSolutions/Omarchy.git
 ```
 
 **Remove:**
@@ -110,17 +115,23 @@ omarchy theme install https://github.com/<you>/omarchy-gehrmann-solutions-theme.
 omarchy theme remove gehrmann-solutions
 ```
 
-## Updating the Nextcloud copy
+## Workflow: editing and publishing
 
-The Nextcloud folder is a git clone of this repo, with its working tree
-checked out (so Nextcloud can sync the files) — that means it can only be
-*pulled into*, not pushed to directly. After changing anything in the live
-theme, sync the Nextcloud copy by pulling from it:
-
-```bash
-cd ~/.config/omarchy/themes/gehrmann-solutions
-git add -A && git commit -m "describe the change"
-
-cd ~/Nextcloud/omarchy-gehrmann-solutions-theme
-git pull   # remote "live" already points at ~/.config/omarchy/themes/gehrmann-solutions
-```
+1. Edit and commit in the canonical copy:
+   ```bash
+   cd ~/Work/tries/gehrmann-solutions-theme
+   git add -A && git commit -m "describe the change"
+   ```
+2. Push to the live theme so Omarchy picks it up:
+   ```bash
+   git push live master
+   cd ~/.config/omarchy/themes/gehrmann-solutions
+   git reset --hard origin/master   # fast-forward the live working tree
+   omarchy theme refresh && omarchy theme bg cache
+   ```
+3. Publish to the public GitHub monorepo:
+   ```bash
+   cd ~/Work/tries/omarchy
+   git subtree pull --prefix=Themes/gehrmann-solutions gehrmann-solutions-theme master
+   git push origin main
+   ```
