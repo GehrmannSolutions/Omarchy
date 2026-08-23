@@ -122,11 +122,12 @@ omarchy theme remove gehrmann-solutions
    cd ~/Work/tries/gehrmann-solutions-theme
    git add -A && git commit -m "describe the change"
    ```
-2. Push to the live theme so Omarchy picks it up:
+2. Pull into the live theme so Omarchy picks it up (the live copy's `origin`
+   already points at the canonical copy; can't push directly into it since
+   its branch is checked out there):
    ```bash
-   git push live master
    cd ~/.config/omarchy/themes/gehrmann-solutions
-   git reset --hard origin/master   # fast-forward the live working tree
+   git pull origin master
    omarchy theme refresh && omarchy theme bg cache
    ```
 3. Publish to the public GitHub monorepo:
