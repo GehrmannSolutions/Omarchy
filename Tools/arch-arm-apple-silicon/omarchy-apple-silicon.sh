@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Arch Linux ARM / Omarchy on Apple Silicon — guided setup (GEH-37).
 # Run this on the Mac itself. It detects the chip and walks through the
-# right path: bare metal (M1/M2) or a native aarch64 VM (M3+ / no-repartition).
+# right path: bare metal (M1/M2 proven, M3 new with caveats) or a native
+# aarch64 VM (M3 Ultra / M4 / M5 / no-repartition).
 # It never partitions a disk itself; the bare-metal path only prints the
 # commands and hands off to the official Asahi installer interactively.
 set -euo pipefail
@@ -17,13 +18,26 @@ chip="$(sysctl -n machdep.cpu.brand_string)"   # e.g. "Apple M2 Pro"
 say "Detected chip: $chip"
 
 bare_metal_ok=false
+is_m3=false
 case "$chip" in
   *" M1"*|*" M2"*) bare_metal_ok=true ;;
+  *" M3 Ultra"*)   ;;  # Asahi does not support M3 Ultra
+  *" M3"*)         bare_metal_ok=true; is_m3=true ;;
 esac
 
 if $bare_metal_ok; then
-  say "This is an M1/M2-family Mac: bare metal (dual-boot next to macOS) is supported."
+  if $is_m3; then
+    say "This is an M3-family Mac: bare metal is supported since Sept 2026, with caveats:"
+    note "- NO GPU 3D acceleration yet: the desktop runs software-rendered (slower than M1/M2)."
+    note "- Sleep does not work; the HDMI port on MacBook Pros is disabled."
+    note "- omarchy-mac is tested on M1/M2; on M3 treat the Omarchy layer as experimental."
+  else
+    say "This is an M1/M2-family Mac: bare metal (dual-boot next to macOS) is supported."
+  fi
   note "Requirements: macOS 15+, a current backup, >=50 GB free (100 GB recommended)."
+  note "Note: macOS cannot be fully removed on Apple Silicon (firmware lives there)."
+  note "For a 'single boot' feel, shrink macOS to the minimum in the Asahi installer;"
+  note "Linux becomes the default startup volume."
   printf '\nInstall bare metal now? [y/N] '
   read -r ans
   if [[ "${ans:-}" =~ ^[Yy] ]]; then
@@ -39,7 +53,7 @@ if $bare_metal_ok; then
   fi
   say "Skipping bare metal. Falling through to the VM path."
 else
-  say "This chip has no Asahi/bare-metal support yet (M1/M2 only). Using the VM path."
+  say "This chip has no Asahi/bare-metal support yet (M4/M5/M3 Ultra). Using the VM path."
 fi
 
 say "VM path: native aarch64 Omarchy in UTM."

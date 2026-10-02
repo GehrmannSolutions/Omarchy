@@ -8,8 +8,24 @@ State of the ecosystem (verified 2026-10-02):
 | Your Mac | Recommended path | Status |
 |---|---|---|
 | **M1 / M2** (incl. Pro/Max/Ultra) | **Bare metal**: Asahi Alarm + `omarchy-mac` dual-boot alongside macOS | Working today. GPU, Wi‑Fi, Touch ID, external displays via USB‑C, disk encryption. |
-| **M3 / M4 / M5** | **VM**: native aarch64 Omarchy in UTM (free) or Parallels (better graphics) | Working today with caveats (see below). Asahi has no M3+ support yet — no bare-metal option. |
+| **M3 / M3 Pro / M3 Max** | **Bare metal** via Asahi Alarm — support shipped Sept 2026 | New. Wi‑Fi, Bluetooth, USB 3, webcam, mics, HW video decode all work. **No GPU 3D acceleration yet** (desktop is software-rendered), no sleep, HDMI port disabled. M3 Ultra not supported. |
+| **M4 / M5** | **VM**: native aarch64 Omarchy in UTM (free) or Parallels (better graphics) | Asahi M4/M5 support still in development — no bare-metal option yet. |
 | Any M\* chip, vanilla Arch (no Omarchy) | Arch Linux ARM aarch64 VM in UTM | Trivial; UTM gallery has ALARM images. |
+
+## "Single boot" on Apple Silicon — what's actually possible
+
+Pure single boot (Linux only, macOS fully removed) is **not possible on any
+Apple Silicon Mac** by platform design: the boot chain requires a macOS
+"stub" partition holding Apple's bootloader, firmware and a recovery image
+(~2.5 GB). Deleting the full macOS install beyond that stub is explicitly
+unsupported by Asahi — system firmware updates only come through macOS.
+
+The closest supported setup — and what this guide recommends for a
+"single boot" goal: keep a **minimal macOS** (~15–20 GB) for firmware
+updates, give the entire rest of the SSD to Linux during the Asahi install,
+and leave Linux as the default startup volume. The Mac then boots straight
+into Arch every time; macOS exists only as a maintenance partition you never
+see unless you hold the power button at boot.
 
 The helper script in this directory, [`omarchy-apple-silicon.sh`](omarchy-apple-silicon.sh),
 detects your chip and walks you through the right path. Run it **on the Mac**:
@@ -20,16 +36,35 @@ bash Tools/arch-arm-apple-silicon/omarchy-apple-silicon.sh
 
 ---
 
-## Path A — Bare metal on M1/M2 (Asahi Alarm + omarchy-mac)
+## Path A — Bare metal (M1/M2 proven; M3 new as of Sept 2026)
 
 This is real Arch Linux ARM booting natively next to macOS, using Asahi
 Linux's partitioner and Apple Silicon kernel work. Nothing in macOS is
-touched; a boot menu lets you pick macOS or Linux at startup.
+touched; a boot menu lets you pick macOS or Linux at startup (for a
+"single boot" feel, shrink macOS to the minimum and Linux is the default —
+see above).
 
 **Prerequisites**
-- M1/M2-family Mac (M3+ not supported — use Path B)
+- M1/M2-family or M3/M3 Pro/M3 Max Mac (M3 Ultra, M4, M5 not supported — use Path B)
 - macOS 15 or later, recent Time Machine backup
 - ≥ 50 GB free on the internal SSD (100 GB recommended)
+
+**M3 caveats (read before installing on an M3)**
+
+Asahi shipped official M3 support in September 2026 and the Asahi Alarm
+(Arch) port enabled M3 firmware (14.8.3) on 2026‑09‑20. Working: Wi‑Fi,
+Bluetooth, USB up to 10 Gb/s, webcam, internal mics, hardware video decode
+incl. AV1. Not working yet:
+
+- **GPU 3D acceleration** — the desktop runs software-rendered on the
+  firmware framebuffer. Hyprland/Omarchy works but is noticeably slower
+  than on M1/M2; GPU support is actively being developed.
+- **Sleep** (firmware framebuffer limitation) and the **HDMI port** on
+  MacBook Pros (incomplete display-controller support).
+- `omarchy-mac` was built and tested against M1/M2. On M3 treat it as
+  experimental: if the Omarchy setup misbehaves, the proven M3 baseline is
+  Asahi Alarm's stock KDE/GNOME image, with Omarchy layered on later once
+  GPU support lands.
 
 **Install (~15 min, 3 automatic reboots)**
 
@@ -71,7 +106,7 @@ preview-quality as of early Oct 2026; the Asahi Alarm + omarchy-mac path above
 is the proven route right now, but Omarchy M is worth watching — once it ships
 a polished release it will likely become the recommended path.
 
-## Path B — VM on M3/M4/M5 (or if you don't want to repartition)
+## Path B — VM on M4/M5, M3 Ultra (or if you don't want to repartition)
 
 Native aarch64 Omarchy inside a VM. Two options:
 
@@ -115,4 +150,6 @@ and install ALARM normally.
 - UTM build repo: <https://github.com/ggalancs/omarchy-arm-utm> · prebuilt image: <https://archive.org/details/omarchy-arm-utm>
 - UTM daily-driver fixes: <https://github.com/dchersey/omarchy-apple-silicon-utm>
 - Parallels repack + live ISO: <https://github.com/vincenzopalazzo/omarchy-parallels>
-- Asahi device support (M1/M2 only): <https://asahilinux.org/fedora/#device-support>
+- Asahi M3 support announcement (Sept 2026, incl. caveats): <https://asahilinux.org/2026/09/m2-episode-1/>
+- Asahi Alarm M3 firmware enablement (2026‑09‑20): <https://github.com/asahi-alarm/asahi-installer-data/commits>
+- Why macOS can't be fully removed (stub partition): <https://asahilinux.org/docs/sw/partitioning-cheatsheet/>
