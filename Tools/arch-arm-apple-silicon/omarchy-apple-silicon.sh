@@ -31,6 +31,8 @@ if $bare_metal_ok; then
     note "- NO GPU 3D acceleration yet: the desktop runs software-rendered (slower than M1/M2)."
     note "- Sleep does not work; the HDMI port on MacBook Pros is disabled."
     note "- omarchy-mac is tested on M1/M2; on M3 treat the Omarchy layer as experimental."
+    note "- M3 support is gated behind the installer's Expert mode: answer 'y' at"
+    note "  'Enable expert mode?', then press Enter to keep the default firmware version."
   else
     say "This is an M1/M2-family Mac: bare metal (dual-boot next to macOS) is supported."
   fi

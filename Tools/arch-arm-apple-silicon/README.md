@@ -65,11 +65,18 @@ incl. AV1. Not working yet:
   experimental: if the Omarchy setup misbehaves, the proven M3 baseline is
   Asahi Alarm's stock KDE/GNOME image, with Omarchy layered on later once
   GPU support lands.
+- **Expert mode** — Asahi's M3 announcement says M3 support is gated
+  behind the installer's Expert mode while the work is fresh. If the
+  installer doesn't offer an install on your M3, restart it and answer
+  `y` at "Enable expert mode?". Expert mode also asks which macOS version
+  to use for boot firmware — just press Enter to keep the default; any
+  other choice is unsupported and can break the install.
 
 **Install (~15 min, 3 automatic reboots)**
 
 1. From macOS Terminal, run the Asahi Alarm installer and choose
-   **Asahi Alarm Minimal (BTRFS)**, allocating ≥ 50 GB:
+   **Asahi Alarm Minimal (BTRFS)**, allocating ≥ 50 GB (on an M3, enable
+   Expert mode if prompted — see M3 caveats above):
 
    ```bash
    curl https://asahi-alarm.org/installer-bootstrap.sh | sh
