@@ -85,3 +85,23 @@ Option 2 needs a reboot test after each change. The shared infra-change rules
 Before any change to the device tree or the kernel: back up the current boot
 setup and report the findings to Marius. Ask for a go-ahead before the first
 modification.
+## Dry run result (2026-10-03)
+
+Patch series "usb: typec: tipd: Add sn201202x (ACE3) support", v2, applied
+with `git apply --check` against:
+- AsahiLinux/linux v7.1.13 (installed kernel base): FAILS
+- AsahiLinux/linux v7.2: FAILS
+- AsahiLinux/linux v7.2.2: FAILS
+
+Failing hunk: drivers/usb/typec/tipd/core.c, the hunk at `@@ -1910,29 +1783,26 @@`
+(tps6598x_remove / suspend / resume refactor). The patch 2/3
+("Factor out i2c specifics") does not apply, so 3/3 cannot apply either.
+
+Series cover letter says base commit 0ce37745d4bf (torvalds/linux, merged
+2026-07-25). Compare 0ce37745...v7.2 is ahead by 1502 commits and reports no
+change to drivers/usb/typec/tipd in the first file page, yet the hunk still
+fails. Not yet explained. Possible causes: the mail archive's diff was
+mangled, or the series was posted against a tree with unmerged tipd changes.
+
+Conclusion: no clean apply. The fix needs either a manual port of the series
+or a base that matches it. Not attempted: no build, no system change.
