@@ -49,3 +49,21 @@ Rollback: `rmmod sn201202x` and delete the copied modules, then `depmod`.
 - Module vermagic matches the running kernel. Loaded with `modprobe sn201202x`.
   Type-C ports `port0` and `port1` now register.
 - USB enumeration after a device is plugged in: not yet verified.
+
+## Second blocker found 2026-10-03: PHY pipehandler lock
+
+After the PD driver was loaded and port0 saw a partner (YubiKey), the xHCI hosts
+came up, but no device enumerated. Kernel log:
+
+    phy-apple-atc 703000000.phy: Pipehandler lock not acked.
+    phy-apple-atc 703000000.phy: Failed to lock pipehandler
+
+Fix candidate: patch 0005 (retry the lock up to 10 times with 5–10 ms backoff).
+It is the minimal part of upstream PR AsahiLinux/linux #503 ("Fix/atcphy
+pipehandler", open, base `asahi`). That PR was written for an M1 MacBook Air
+with a USB-C hub. Its teardown change is not included here.
+
+- Built `phy-apple-atc.ko` with vermagic `7.1.13-3-2-ARCH SMP preempt mod_unload aarch64`.
+  All undefined symbols are provided by the running kernel.
+- Not installed. The PHY is in use by dwc3-apple, so swapping it needs either a
+  reboot or unbinding the drivers. Both need root and a decision from Marius.
