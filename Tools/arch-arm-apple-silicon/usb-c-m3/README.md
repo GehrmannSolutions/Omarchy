@@ -40,3 +40,12 @@ support", v2, 27 Jul 2026 (LKML 2607.3). Not yet merged upstream.
 5. Check `/sys/class/typec`, then plug in a USB stick and check `/sys/bus/usb/devices`.
 
 Rollback: `rmmod sn201202x` and delete the copied modules, then `depmod`.
+
+## Status 2026-10-03
+
+- Build succeeded with patches 0002 and 0003, plus local fix 0004 (missing
+  `<linux/interrupt.h>` in `tps6598x.h`). Note: patch 0004 is applied after the
+  series, so the build script must add it too. The script is not yet updated for it.
+- Module vermagic matches the running kernel. Loaded with `modprobe sn201202x`.
+  Type-C ports `port0` and `port1` now register.
+- USB enumeration after a device is plugged in: not yet verified.
