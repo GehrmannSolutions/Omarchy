@@ -15,9 +15,9 @@ unit = screen_h / 1080;                    # 1 at 1080 lines
 #----------------------------------------- Logo --------------------------------
 
 # logo-glow.png and logo-shapes.png are the same square box; the logo fills ~80 % of it
-logo_size = Math.Int(screen_h * 0.40);
+logo_size = Math.Int(screen_h * 0.58);
 logo_x = Math.Int(screen_w / 2 - logo_size / 2);
-logo_y = Math.Int(screen_h * 0.44 - logo_size / 2);
+logo_y = Math.Int(screen_h * 0.42 - logo_size / 2);
 
 glow.image = Image("logo-glow.png").Scale(logo_size, logo_size);
 glow.sprite = Sprite(glow.image);

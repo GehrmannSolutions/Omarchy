@@ -142,7 +142,7 @@ cp "$SRC/sunburst-navy.jpg" "$DARK/backgrounds/4-sunburst-navy.jpg"
 magick "$TMP/navy.png" -quality 92 "$DARK/backgrounds/5-navy-plain.jpg"
 unlock d-glow "$DARK/unlock.png"
 preview_unlock "$DARK/unlock.png" "$NAVY" "#f5f6fa" "$DARK/preview-unlock.png"
-plymouth "$DARK/extras/plymouth" "$WHITE" "$BOLD_NAVY" "$BLUE" "$NAVY" "#f5f6fa" "$BLUE" 0.35 1.0
+plymouth "$DARK/extras/plymouth" "$WHITE" "$BOLD_NAVY" "$BLUE" "$NAVY" "#f5f6fa" "$BLUE" 0.12 1.0
 
 # --- light: paper, the dark theme's logo inverted (navy outline, white fill) ----------
 canvas paper "$WHITE" "$PAPER_EDGE"
@@ -156,7 +156,7 @@ cp "$SRC/sunburst-white.jpg" "$LIGHT/backgrounds/4-sunburst-white.jpg"
 magick "$TMP/paper.png" -quality 92 "$LIGHT/backgrounds/5-paper-plain.jpg"
 unlock l-blue "$LIGHT/unlock.png"
 preview_unlock "$LIGHT/unlock.png" "$PAPER" "$NAVY" "$LIGHT/preview-unlock.png"
-plymouth "$LIGHT/extras/plymouth" "$BOLD_NAVY" "$BLUE" "$BLUE" "$PAPER" "$NAVY" "$BLUE" 0.15 0.6
+plymouth "$LIGHT/extras/plymouth" "$BOLD_NAVY" "$BLUE" "$BLUE" "$PAPER" "$NAVY" "$BLUE" 0.05 0.7
 
 # --- extras, the same in both themes --------------------------------------------------------
 for theme in "$DARK" "$LIGHT"; do
