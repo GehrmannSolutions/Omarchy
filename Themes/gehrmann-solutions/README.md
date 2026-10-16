@@ -16,10 +16,11 @@ because `omarchy theme install` clones a whole repository as one theme:
 | `source/gs-logo.svg` | the GS cloud-and-circuit logo as a layered SVG (background, glow, outline, infill); traced with potrace, so the outline has a sketched, hand-drawn line |
 | `source/gs-logo.png` | the original two-tone raster logo (white outline, navy infill) |
 | `source/sunburst-*.jpg` | the website's dot sunburst graphic, navy and white |
-| `tools/build.sh` | builds every image of both themes: backgrounds, `unlock.png`, `preview-unlock.png` |
+| `tools/build.sh` | builds every image of both themes: backgrounds, `unlock.png`, `preview-unlock.png`, the boot screen images |
 | `tools/logo-variant.py` | recolours the SVG's layers for one variant |
 | `tools/centroid.py` | finds the logo's visual centre (its cloud reaches further right than left) |
 | `extras/gs-lock-logo` | optional: the theme's logo on the lock screen (see the themes' READMEs) |
+| `extras/plymouth/` | optional: the animated boot screen (Plymouth script, install.sh; build.sh adds its images per theme) |
 | `extras/screensaver.txt` | optional: the logo as text art for Omarchy's screensaver |
 
 ## Building

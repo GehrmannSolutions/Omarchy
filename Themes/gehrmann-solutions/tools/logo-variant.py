@@ -6,7 +6,7 @@ shape infill. A variant drops the background layer, recolours outline and infill
 and keeps the glow (in a colour and opacity of its own) or drops it. The viewBox
 gets a margin so the glow is not clipped at the edge.
 
-usage: logo-variant.py SOURCE OUT --outline HEX --infill HEX [--glow HEX --glow-opacity F]
+usage: logo-variant.py SOURCE OUT --outline HEX --infill HEX [--glow HEX --glow-opacity F] [--glow-only]
 """
 import argparse
 import re
@@ -53,6 +53,7 @@ def main():
     parser.add_argument("--glow", type=colour)
     parser.add_argument("--glow-opacity", type=float, default=0.75)
     parser.add_argument("--margin", type=int, default=128, help="viewBox margin in SVG units")
+    parser.add_argument("--glow-only", action="store_true", help="drop outline and infill (an animation's glow layer)")
     args = parser.parse_args()
 
     with open(args.source, encoding="utf-8") as f:
@@ -66,6 +67,9 @@ def main():
         svg = re.sub(r'(id="layer-glow"[^>]*opacity=")[0-9.]+"', rf'\g<1>{args.glow_opacity}"', svg, count=1)
     else:
         svg = drop(svg, "layer-glow")
+    if args.glow_only:
+        svg = drop(svg, "layer-outline")
+        svg = drop(svg, "layer-infill")
 
     m = args.margin
     size = 1024 + 2 * m

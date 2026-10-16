@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build the images of both Gehrmann Solutions Omarchy themes from source/:
-#   backgrounds/, unlock.png (Plymouth boot / disk unlock logo) and preview-unlock.png.
+#   backgrounds/, unlock.png (Plymouth boot / disk unlock logo), preview-unlock.png and
+#   extras/plymouth/ (the animated boot screen, optional).
 # preview.png is a real desktop screenshot: tools/preview.sh, with the theme installed and active.
 #
 # usage: tools/build.sh DARK_THEME_DIR LIGHT_THEME_DIR
@@ -68,7 +69,7 @@ offset() { printf '%+d%+d' "$DX" "$DY"; }
 
 # canvas NAME CENTRE EDGE -> radial gradient, dithered so it does not band
 canvas() {
-  magick -size ${W}x${H} "radial-gradient:$2-$3" -attenuate 0.6 +noise Uniform -depth 8 "$TMP/$1.png"
+  magick -size ${W}x${H} "radial-gradient:$2-$3" -seed 1 -attenuate 0.6 +noise Uniform -depth 8 "$TMP/$1.png"
 }
 
 # place BACKGROUND LOGO OUT
@@ -98,6 +99,34 @@ preview_unlock() {
     -strip "$out"
 }
 
+# plymouth OUT OUTLINE INFILL GLOW BG FG ACCENT GLOW_LO GLOW_HI: the boot screen theme (extras/plymouth)
+# with high-resolution images the script scales down: the logo's shapes and its glow as separate
+# layers (the glow breathes), and the dialog images at four times Omarchy's sizes.
+plymouth() {
+  local out=$1 outline=$2 infill=$3 glow=$4 bg=$5 fg=$6 accent=$7 lo=$8 hi=$9 rgb
+  mkdir -p "$out"
+  python3 -I "$HERE/tools/logo-variant.py" "$SRC/gs-logo.svg" "$TMP/ply-shapes.svg" --outline "$outline" --infill "$infill" --margin $MARGIN
+  python3 -I "$HERE/tools/logo-variant.py" "$SRC/gs-logo.svg" "$TMP/ply-glow.svg" --outline "$outline" --infill "$infill" \
+    --glow "$glow" --glow-opacity 1 --glow-only --margin $MARGIN
+  rsvg-convert -h 1280 "$TMP/ply-shapes.svg" -o "$out/logo-shapes.png"
+  rsvg-convert -h 1280 "$TMP/ply-glow.svg" -o "$out/logo-glow.png"
+  magick -size 1144x192 xc:none -fill none -stroke "$fg" -strokewidth 8 -draw "roundrectangle 4,4 1139,187 24,24" "$out/entry.png"
+  magick -size 336x384 xc:none -fill "$fg" -draw "roundrectangle 0,160 335,383 36,36" \
+    -fill none -stroke "$fg" -strokewidth 44 -draw "arc 62,24 274,260 180,360" \
+    -stroke none -fill "$fg" -draw "rectangle 40,142 84,180" -draw "rectangle 252,142 296,180" "$out/lock.png"
+  magick -size 56x56 xc:none -fill "$fg" -draw "circle 28,28 28,2" "$out/bullet.png"
+  magick -size 1200x40 xc:none -fill none -stroke "$fg" -strokewidth 4 -draw "roundrectangle 2,2 1197,37 18,18" "$out/progress_box.png"
+  magick -size 1200x40 xc:none -fill "$accent" -draw "roundrectangle 0,0 1199,39 20,20" "$out/progress_bar.png"
+  for f in "$out"/*.png; do magick "$f" -strip "$f"; done
+  rgb=$(python3 -c "h='$bg'.lstrip('#'); print(', '.join('%.3f' % (int(h[i:i+2], 16) / 255) for i in (0, 2, 4)))")
+  local trgb; trgb=$(python3 -c "h='$fg'.lstrip('#'); print(', '.join('%.3f' % (int(h[i:i+2], 16) / 255) for i in (0, 2, 4)))")
+  sed -e "s/@BG@/$rgb/" -e "s/@TEXT@/$trgb/" -e "s/@GLOW_LO@/$lo/g" -e "s/@GLOW_HI@/$hi/g" \
+    "$HERE/extras/plymouth/gehrmann-solutions.script.in" >"$out/gehrmann-solutions.script"
+  ! grep -q '@[A-Z_]*@' "$out/gehrmann-solutions.script" || { echo "build.sh: unreplaced placeholder in the Plymouth script" >&2; exit 1; }
+  install -m 0644 "$HERE/extras/plymouth/gehrmann-solutions.plymouth" "$out/"
+  install -m 0755 "$HERE/extras/plymouth/install.sh" "$out/"
+}
+
 mkdir -p "$DARK/backgrounds" "$LIGHT/backgrounds"
 rm -f "$DARK"/backgrounds/* "$LIGHT"/backgrounds/*
 
@@ -113,6 +142,7 @@ cp "$SRC/sunburst-navy.jpg" "$DARK/backgrounds/4-sunburst-navy.jpg"
 magick "$TMP/navy.png" -quality 92 "$DARK/backgrounds/5-navy-plain.jpg"
 unlock d-glow "$DARK/unlock.png"
 preview_unlock "$DARK/unlock.png" "$NAVY" "#f5f6fa" "$DARK/preview-unlock.png"
+plymouth "$DARK/extras/plymouth" "$WHITE" "$BOLD_NAVY" "$BLUE" "$NAVY" "#f5f6fa" "$BLUE" 0.35 1.0
 
 # --- light: paper, the dark theme's logo inverted (navy outline, white fill) ----------
 canvas paper "$WHITE" "$PAPER_EDGE"
@@ -126,6 +156,7 @@ cp "$SRC/sunburst-white.jpg" "$LIGHT/backgrounds/4-sunburst-white.jpg"
 magick "$TMP/paper.png" -quality 92 "$LIGHT/backgrounds/5-paper-plain.jpg"
 unlock l-blue "$LIGHT/unlock.png"
 preview_unlock "$LIGHT/unlock.png" "$PAPER" "$NAVY" "$LIGHT/preview-unlock.png"
+plymouth "$LIGHT/extras/plymouth" "$BOLD_NAVY" "$BLUE" "$BLUE" "$PAPER" "$NAVY" "$BLUE" 0.15 0.6
 
 # --- extras, the same in both themes --------------------------------------------------------
 for theme in "$DARK" "$LIGHT"; do

@@ -1,0 +1,248 @@
+# Gehrmann Solutions Plymouth theme: the GS logo with a breathing glow.
+# The password dialog, progress bar and messages follow Omarchy's omarchy.script (MIT).
+#
+# Every image is drawn from a high-resolution file and only scaled down, sized from the screen
+# height, so the screen stays sharp on any display. That needs DeviceScale=1 in plymouthd.conf
+# (install.sh sets it): with a device scale of 2 Plymouth would draw everything at double size.
+
+Window.SetBackgroundTopColor(@BG@);
+Window.SetBackgroundBottomColor(@BG@);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+unit = screen_h / 1080;                    # 1 at 1080 lines
+
+#----------------------------------------- Logo --------------------------------
+
+# logo-glow.png and logo-shapes.png are the same square box; the logo fills ~80 % of it
+logo_size = Math.Int(screen_h * 0.40);
+logo_x = Math.Int(screen_w / 2 - logo_size / 2);
+logo_y = Math.Int(screen_h * 0.44 - logo_size / 2);
+
+glow.image = Image("logo-glow.png").Scale(logo_size, logo_size);
+glow.sprite = Sprite(glow.image);
+glow.sprite.SetPosition(logo_x, logo_y, 1);
+glow.sprite.SetOpacity(@GLOW_LO@);
+
+shapes.image = Image("logo-shapes.png").Scale(logo_size, logo_size);
+shapes.sprite = Sprite(shapes.image);
+shapes.sprite.SetPosition(logo_x, logo_y, 2);
+shapes.sprite.SetOpacity(1);
+
+# below the logo's shapes (the box has a ~10 % margin)
+dialog_y = logo_y + Math.Int(logo_size * 0.92) + Math.Int(36 * unit);
+
+#----------------------------------------- Animation --------------------------------
+
+# The glow breathes: from GLOW_LO to GLOW_HI and back every BREATH seconds (50 frames a second).
+global.breath_period = 2.4;
+global.glow_lo = @GLOW_LO@;
+global.glow_hi = @GLOW_HI@;
+
+# Use these to adjust the progress bar timing
+global.fake_progress_limit = 0.7;  # Target percentage for fake progress (0.0 to 1.0)
+global.fake_progress_duration = 15.0;  # Duration in seconds to reach limit
+
+global.frame = 0;
+global.animation_frame = 0;
+global.fake_progress = 0.0;
+global.real_progress = 0.0;
+global.fake_progress_active = 0;
+global.fake_progress_start_time = 0.0;
+global.password_shown = 0;
+global.max_progress = 0.0;
+
+fun refresh_callback() {
+  global.frame++;
+  global.animation_frame++;
+
+  phase = (global.frame / 50.0) / global.breath_period;
+  wave = 0.5 - 0.5 * Math.Cos(2 * Math.Pi * phase);
+  glow.sprite.SetOpacity(global.glow_lo + (global.glow_hi - global.glow_lo) * wave);
+
+  # Animate fake progress to limit over time with easing
+  if (global.fake_progress_active == 1) {
+    elapsed_time = global.animation_frame / 50.0;
+    time_ratio = elapsed_time / global.fake_progress_duration;
+    if (time_ratio > 1.0) time_ratio = 1.0;
+    eased_ratio = 1 - ((1 - time_ratio) * (1 - time_ratio));
+    global.fake_progress = eased_ratio * global.fake_progress_limit;
+    update_progress_bar(global.fake_progress);
+  }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+#----------------------------------------- Helper Functions --------------------------------
+
+fun update_progress_bar(progress) {
+  # Only update if progress is moving forward
+  if (progress > global.max_progress) {
+    global.max_progress = progress;
+    width = Math.Int(progress_w * progress);
+    if (width < 1) width = 1;
+    progress_bar.image = progress_bar.original_image.Scale(width, progress_h);
+    progress_bar.sprite.SetImage(progress_bar.image);
+  }
+}
+
+fun show_progress_bar() {
+  progress_box.sprite.SetOpacity(1);
+  progress_bar.sprite.SetOpacity(1);
+}
+
+fun hide_progress_bar() {
+  progress_box.sprite.SetOpacity(0);
+  progress_bar.sprite.SetOpacity(0);
+}
+
+fun show_password_dialog() {
+  lock.sprite.SetOpacity(1);
+  entry.sprite.SetOpacity(1);
+}
+
+fun hide_password_dialog() {
+  lock.sprite.SetOpacity(0);
+  entry.sprite.SetOpacity(0);
+
+  for (index = 0; bullet.sprites[index]; index++) {
+    bullet.sprites[index].SetOpacity(0);
+  }
+}
+
+fun start_fake_progress() {
+  global.fake_progress_active = 1;
+  global.animation_frame = 0;
+  global.max_progress = 0.0;
+  global.fake_progress = 0.0;
+  global.fake_progress_start_time = 0.0;
+}
+
+fun stop_fake_progress() {
+  global.fake_progress_active = 0;
+}
+
+#----------------------------------------- Dialogue --------------------------------
+
+# entry.png, lock.png and bullet.png are drawn at four times these sizes
+entry_w = Math.Int(286 * unit);
+entry_h = Math.Int(48 * unit);
+entry.image = Image("entry.png").Scale(entry_w, entry_h);
+entry.sprite = Sprite(entry.image);
+entry.x = Math.Int(screen_w / 2 - entry_w / 2);
+entry.y = dialog_y;
+entry.sprite.SetPosition(entry.x, entry.y, 10001);
+entry.sprite.SetOpacity(0);
+
+lock_h = Math.Int(entry_h * 0.8);
+lock_w = Math.Int(lock_h * 84 / 96);
+lock.image = Image("lock.png").Scale(lock_w, lock_h);
+lock.sprite = Sprite(lock.image);
+lock.x = entry.x - lock_w - Math.Int(15 * unit);
+lock.y = entry.y + Math.Int(entry_h / 2 - lock_h / 2);
+lock.sprite.SetPosition(lock.x, lock.y, 10001);
+lock.sprite.SetOpacity(0);
+
+bullet_size = Math.Max(4, Math.Int(7 * unit));
+bullet_gap = Math.Max(3, Math.Int(5 * unit));
+bullet.image = Image("bullet.png").Scale(bullet_size, bullet_size);
+bullet.sprites = [];
+
+fun display_normal_callback() {
+  hide_password_dialog();
+
+  mode = Plymouth.GetMode();
+
+  # Only show progress bar for boot and resume modes
+  if ((mode == "boot" || mode == "resume") && global.password_shown == 1) {
+    show_progress_bar();
+    start_fake_progress();
+  }
+}
+
+fun display_password_callback(prompt, bullets) {
+  global.password_shown = 1;
+
+  stop_fake_progress();
+  hide_progress_bar();
+  show_password_dialog();
+
+  for (index = 0; bullet.sprites[index]; index++) {
+    bullet.sprites[index].SetOpacity(0);
+  }
+
+  max_bullets = Math.Int((entry_w - 40 * unit) / (bullet_size + bullet_gap));
+  bullets_to_show = bullets;
+  if (bullets_to_show > max_bullets) {
+    bullets_to_show = max_bullets;
+  }
+
+  for (index = 0; index < bullets_to_show; index++) {
+    if (!bullet.sprites[index]) {
+      bullet.sprites[index] = Sprite(bullet.image);
+      bullet.x = entry.x + Math.Int(20 * unit) + index * (bullet_size + bullet_gap);
+      bullet.y = entry.y + Math.Int(entry_h / 2 - bullet_size / 2);
+      bullet.sprites[index].SetPosition(bullet.x, bullet.y, 10002);
+    }
+
+    bullet.sprites[index].SetOpacity(1);
+  }
+}
+
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+#----------------------------------------- Progress Bar --------------------------------
+
+progress_w = Math.Int(300 * unit);
+progress_h = Math.Max(2, Math.Int(10 * unit));
+
+progress_box.image = Image("progress_box.png").Scale(progress_w, progress_h);
+progress_box.sprite = Sprite(progress_box.image);
+progress_box.x = Math.Int(screen_w / 2 - progress_w / 2);
+progress_box.y = entry.y + Math.Int(entry_h / 2 - progress_h / 2);
+progress_box.sprite.SetPosition(progress_box.x, progress_box.y, 3);
+progress_box.sprite.SetOpacity(0);
+
+progress_bar.original_image = Image("progress_bar.png");
+progress_bar.sprite = Sprite();
+progress_bar.image = progress_bar.original_image.Scale(1, progress_h);
+progress_bar.sprite.SetImage(progress_bar.image);
+progress_bar.sprite.SetPosition(progress_box.x, progress_box.y, 4);
+progress_bar.sprite.SetOpacity(0);
+
+fun progress_callback(duration, progress) {
+  # Track when fake progress starts
+  # Needed because duration and progress freeze during drive decryption
+  if (global.fake_progress_start_time == 0.0) {
+    global.fake_progress_start_time = duration;
+  }
+
+  global.real_progress = progress;
+
+  # Use real progress once its unfrozen and exceeds fake progress
+  if (duration > global.fake_progress_start_time && progress > global.fake_progress) {
+    stop_fake_progress();
+    update_progress_bar(progress);
+  }
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+#----------------------------------------- Message --------------------------------
+
+message_sprite = Sprite();
+message_sprite.SetPosition(Math.Int(10 * unit), Math.Int(10 * unit), 10000);
+
+fun display_message_callback(text) {
+  message = Image.Text(text, @TEXT@);
+  message_sprite.SetImage(message);
+  message_sprite.SetOpacity(1);
+}
+
+fun hide_message_callback(text) {
+  message_sprite.SetOpacity(0);
+}
+
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);

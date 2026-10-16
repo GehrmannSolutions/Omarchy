@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Gehrmann Solutions
+Description=The GS logo with a breathing glow.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/gehrmann-solutions
+ScriptFile=/usr/share/plymouth/themes/gehrmann-solutions/gehrmann-solutions.script
