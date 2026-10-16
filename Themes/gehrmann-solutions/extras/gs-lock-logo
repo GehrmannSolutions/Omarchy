@@ -1,0 +1,132 @@
+#!/bin/bash
+# gs-lock-logo: show the current theme's logo (its unlock.png, the Plymouth boot logo) above the
+# password field of the Omarchy lock screen.
+#
+# Omarchy has no theme hook for the lock screen, so this clones the built-in lock plugin with
+# Omarchy's own `omarchy plugin clone omarchy.lock` and adds one Image to the clone's LockView.qml.
+# The clone is rebuilt from the current built-in plugin after every Omarchy update (post-update
+# hook), so it never keeps an old copy of the lock screen: if the built-in LockView.qml changed in
+# a way this patch does not recognise, the clone is removed and the built-in lock stays in use.
+#
+#   gs-lock-logo install    clone + patch, install the post-update hook, restart the shell
+#   gs-lock-logo refresh    rebuild the clone from the current built-in plugin (run by the hook)
+#   gs-lock-logo remove     remove the clone and the hook; the built-in lock is restored
+#   gs-lock-logo status
+set -euo pipefail
+
+ID="${USER:-$(id -un)}.lock"
+PLUGINS_DIR="$HOME/.config/omarchy/plugins"
+CLONE="$PLUGINS_DIR/$ID"
+MARKER=".gs-lock-logo"
+HOOK="$HOME/.config/omarchy/hooks/post-update.d/gs-lock-logo.hook"
+SELF="$HOME/.local/bin/gs-lock-logo"
+
+say() { echo "gs-lock-logo: $*"; }
+fail() { echo "gs-lock-logo: $*" >&2; exit 1; }
+
+ours() { [[ -f $CLONE/$MARKER ]]; }
+
+# Remove our clone (Omarchy backs it up and restores omarchy.lock), then drop those backups.
+drop_clone() {
+  [[ -e $CLONE ]] || return 0
+  ours || fail "$CLONE exists and was not made by gs-lock-logo; remove it first (omarchy plugin remove $ID)"
+  omarchy-plugin-remove "$ID" --yes >/dev/null
+  local backup
+  for backup in "$PLUGINS_DIR"/."$ID".bak.*; do
+    [[ -f $backup/$MARKER ]] && rm -rf -- "$backup"
+  done
+  return 0
+}
+
+# Insert the logo Image right before the password field (BorderSurface with id: inputField).
+patch_view() {
+  local view="$CLONE/LockView.qml" tmp
+  [[ $(grep -c 'id: inputField' "$view") == 1 ]] || return 1
+  grep -q 'function fileUrl' "$view" || return 1
+  tmp=$(mktemp)
+  awk '
+    /^[[:space:]]*BorderSurface[[:space:]]*\{[[:space:]]*$/ { held = $0; next }
+    held != "" {
+      if ($0 ~ /id: inputField/) {
+        print "    // gs-lock-logo: the current theme'"'"'s unlock.png (its boot logo) above the field"
+        print "    Image {"
+        print "      id: gsThemeLogo"
+        print "      source: root.fileUrl(Quickshell.env(\"HOME\") + \"/.local/state/omarchy/current/theme/unlock.png\")"
+        print "      fillMode: Image.PreserveAspectFit"
+        print "      width: root.fieldWidth"
+        print "      height: Math.min(width * (implicitHeight / Math.max(1, implicitWidth)), parent.height / 3)"
+        print "      anchors.bottom: inputField.top"
+        print "      anchors.bottomMargin: 44"
+        print "      anchors.horizontalCenter: parent.horizontalCenter"
+        print "      asynchronous: true"
+        print "      cache: false"
+        print "      visible: status === Image.Ready"
+        print "    }"
+        print ""
+        done = 1
+      }
+      print held; held = ""
+    }
+    { print }
+    END { if (!done) exit 3 }
+  ' "$view" >"$tmp" || { rm -f "$tmp"; return 1; }
+  # Quickshell.env needs the Quickshell module
+  grep -q '^import Quickshell$' "$tmp" || sed -i '0,/^import QtQuick$/s//import QtQuick\nimport Quickshell/' "$tmp"
+  grep -q '^import Quickshell$' "$tmp" || { rm -f "$tmp"; return 1; }
+  mv "$tmp" "$view"
+}
+
+build() {
+  drop_clone
+  omarchy-plugin-clone omarchy.lock >/dev/null
+  [[ -f $CLONE/LockView.qml ]] || fail "omarchy plugin clone did not create $CLONE"
+  touch "$CLONE/$MARKER"
+  if ! patch_view; then
+    drop_clone
+    say "the built-in lock screen changed and the logo patch no longer fits; using the built-in lock"
+    return 1
+  fi
+  sha256sum "$OMARCHY_PATH/shell/plugins/lock/LockView.qml" | cut -d' ' -f1 >"$CLONE/$MARKER"
+  omarchy-plugin-validate "$CLONE" >/dev/null || { drop_clone; fail "the patched clone does not validate"; }
+}
+
+restart_shell() {
+  if [[ ${1:-} != --no-restart ]]; then
+    omarchy-restart-shell >/dev/null 2>&1 || say "restart the shell to load it: omarchy restart shell"
+  fi
+}
+
+case ${1:-} in
+install)
+  : "${OMARCHY_PATH:?OMARCHY_PATH is not set (not an Omarchy session?)}"
+  mkdir -p "$(dirname "$SELF")" "$(dirname "$HOOK")"
+  [[ $(readlink -f "$0") == "$SELF" ]] || install -m 0755 "$0" "$SELF"
+  printf '#!/bin/bash\n# gs-lock-logo: rebuild the lock screen clone from the updated built-in plugin\n"%s" refresh --no-restart || true\n' "$SELF" >"$HOOK"
+  build
+  restart_shell "${2:-}"
+  say "installed: $ID shows the theme's unlock.png; preview with: omarchy-shell lock preview" ;;
+refresh)
+  : "${OMARCHY_PATH:?OMARCHY_PATH is not set}"
+  if ! ours; then say "not installed"; exit 0; fi
+  [[ $(cat "$CLONE/$MARKER") == $(sha256sum "$OMARCHY_PATH/shell/plugins/lock/LockView.qml" | cut -d' ' -f1) ]] &&
+    [[ ${2:-} == --no-restart ]] && { say "built-in lock unchanged"; exit 0; }
+  build && restart_shell "${2:-}" && say "rebuilt from the current built-in lock" ;;
+remove)
+  drop_clone
+  rm -f "$HOOK" "$SELF"
+  restart_shell "${2:-}"
+  say "removed; the built-in lock screen is back" ;;
+status)
+  if ours; then
+    if [[ $(cat "$CLONE/$MARKER") == $(sha256sum "$OMARCHY_PATH/shell/plugins/lock/LockView.qml" | cut -d' ' -f1) ]]; then
+      say "installed, up to date with the built-in lock"
+    else
+      say "installed, built-in lock changed since: run gs-lock-logo refresh"
+    fi
+  else
+    say "not installed"
+  fi ;;
+*)
+  sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2 ;;
+esac
